@@ -1,0 +1,146 @@
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define DIM 20
+#define T 8
+#define K 3
+
+struct Distance {
+    float dist;
+    int vector1;
+    int vector2;
+};
+
+void random_K_centroids(int* arr, int N_DB)
+{
+    int i,j, temp, flag = 0;
+    time_t t;
+    srand((unsigned) time(&t));
+    for( i = 0 ; i < K ; i++ ) {
+        if ( i ==0)
+            arr[i]=rand() % N_DB;
+        else {
+            do {
+                flag = 0;
+                temp = rand() % N_DB;
+                for (j=0;j<i;j++) {
+                    if (arr[j]==temp)
+                        flag=1;
+                }
+            } while (flag==1);
+            arr[i] = temp;
+        }
+      //printf("%d\n",arr[i]);
+   }
+}
+
+float euclidian_distance(float* vector1, float* vector2) {
+    float temp=0.0;
+    int i;
+    for (i = 0;i<DIM;i++) {
+        temp+=pow(vector2[i]-vector1[i],2);
+    }
+    return sqrt(temp);
+}
+
+int main()
+{
+	// Ejecutar como: ./a.out < test.txt
+	int N_DB, i, j, k, centroides[K];
+	float **ELEMS;
+	scanf("%d", &N_DB);
+
+	ELEMS = (float **)malloc(sizeof(float *)*N_DB);
+	for (i=0; i < N_DB; i++)
+		ELEMS[i] = (float *)malloc(sizeof(float)*DIM);
+
+	//En este punto ELEMS es una matriz de tamaño [N_DB][DIM]
+	
+	for (i=0; i < N_DB; i++)
+		for (j=0; j < DIM; j++)
+			scanf("%f", &(ELEMS[i][j]));
+
+	printf("%d\n", N_DB);
+	for (i=0; i < N_DB; i++)
+	{
+		for (j=0; j < DIM; j++)
+			if (j == DIM-1)
+				printf("%.2f\n", ELEMS[i][j]);
+			else
+				printf("%.2f\t", ELEMS[i][j]);
+	}
+    // primeros centroides
+    random_K_centroids(centroides, N_DB);
+    for (i=0;i < K;i++) {
+        printf("%d\n",centroides[i]);
+    }
+    int grupos[N_DB];
+    //printf("Distance between vector %d and vector %d: %f\n", 0, 1, distance(ELEMS[0],ELEMS[1]));
+    // sacamos distancia
+    for (i=0;i< N_DB; i++) {
+        int skip = 0;
+        int grupo = 1;
+        float distancia_menor;
+        int d_iter=0;
+        float dist_temp;
+        /*
+        struct Distance distance[K];
+        */
+        for (j=0;j<K; j++) {
+            if (i == centroides[j]) {
+                skip = 1;
+                break;
+            }
+        }
+        if (skip) {
+            // printf("Primer skip\n");
+            continue;
+        }
+        for (j=0;j<N_DB;j++) {
+            skip = 0;
+            for (k=0;k<K;k++) {
+                if (j==centroides[k]) {
+                    skip =1;
+                    break;
+                }
+            }
+            if (skip == 0 || i==j) {
+                // printf("Segundo skip\n");
+                continue;
+            }
+            // printf("hola\n");
+            /*
+            distance[d_iter].dist = euclidian_distance(ELEMS[i],ELEMS[j]);
+            distance[d_iter].vector1 = i;
+            distance[d_iter].vector2 = j;
+            */
+            dist_temp = euclidian_distance(ELEMS[i],ELEMS[j]);
+            if (d_iter==0) {
+                distancia_menor = dist_temp;
+                printf("The smaller distance is between vector %d and vector %d: %f\n", i, j, distancia_menor);
+                grupo = k+1;
+
+            }
+            else if (distancia_menor> dist_temp) {
+                distancia_menor = dist_temp;
+                printf("The NEW smaller distance is between vector %d and vector %d: %f\n", i, j, distancia_menor);
+                grupo = k+1;
+            }
+            d_iter++;
+
+        }
+        grupos[i] = grupo;
+    }
+    for (i = 0;i<K;i++) {
+        grupos[centroides[i]]=i+1;
+    }
+    for (i = 0;i<N_DB;i++) {
+        printf("%d\n",grupos[i]);
+    }
+    // recalculamos centroide
+
+
+    return 0;
+}
